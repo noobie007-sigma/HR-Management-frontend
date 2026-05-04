@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Office Locations — HR Management</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<header>
+    <a th:href="@{/}" class="back-link">← HR Management</a>
+</header>
+
+<main class="page-main">
+
+    
+
+    <!-- ── Search Bar ── -->
+    <form th:action="@{/locations}" method="get" class="search-row">
+        <input
+            type="text"
+            name="search"
+            th:value="${search}"
+            placeholder="Search by city or state…"
+            class="search-input"
+            autocomplete="off"
+        />
+        <button type="submit" class="btn-search">Search</button>
+        <a th:if="${search != null and !search.isEmpty()}"
+           href="/locations"
+           class="btn-clear">Clear</a>
+    </form>
+
+    <!-- ── Results count ── -->
+    <div class="results-info" th:if="${isSearch}">
+        <span th:text="${totalElements} + ' result(s) for &quot;' + ${search} + '&quot;'"></span>
+    </div>
+
+    <!-- ── Locations Table ── -->
+    <div class="table-card">
+        <table class="data-table" th:if="${not #lists.isEmpty(locations)}">
+            <thead>
+                <tr>
+                    <th>Location ID</th>
+                    <th>Street Address</th>
+                    <th>City</th>
+                    <th>State/Province</th>
+                    <th>Postal Code</th>
+                    <th>Country ID</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="loc : ${locations}">
+                    <td th:text="${loc.locationId}">1000</td>
+                    <td th:text="${loc.streetAddress != null ? loc.streetAddress : '—'}">Street</td>
+                    <td th:text="${loc.city}">City</td>
+                    <td th:text="${loc.stateProvince != null ? loc.stateProvince : '—'}">State</td>
+                    <td th:text="${loc.postalCode != null ? loc.postalCode : '—'}">Postal</td>
+                    <td th:text="${loc.countryId}">IT</td>
+                    <td>
+                        <a th:href="@{/locations/{id}(id=${loc.locationId})}"
+                           class="btn-view">View Details</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Empty state -->
+        <div class="empty-state" th:if="${#lists.isEmpty(locations)}">
+            <p th:if="${isSearch}">No locations found for &ldquo;<strong th:text="${search}"></strong>&rdquo;.</p>
+            <p th:if="${!isSearch}">No locations available.</p>
+            <a th:if="${isSearch}" href="/locations" class="btn-primary" style="margin-top:12px">View all</a>
+        </div>
+    </div>
+
+    <!-- ── Pagination ── -->
+    <div class="pagination" th:if="${totalPages > 1 and !isSearch}">
+        <a th:if="${currentPage > 0}"
+           th:href="@{/locations(page=${currentPage - 1}, size=${pageSize})}"
+           class="page-btn">← Prev</a>
+        <span th:if="${currentPage == 0}" class="page-btn disabled">← Prev</span>
+
+        <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <a th:if="${i != currentPage}"
+               th:href="@{/locations(page=${i}, size=${pageSize})}"
+               th:text="${i + 1}"
+               class="page-num"></a>
+            <span th:if="${i == currentPage}"
+                  th:text="${i + 1}"
+                  class="page-num active"></span>
+        </th:block>
+
+        <a th:if="${currentPage < totalPages - 1}"
+           th:href="@{/locations(page=${currentPage + 1}, size=${pageSize})}"
+           class="page-btn">Next →</a>
+        <span th:if="${currentPage >= totalPages - 1}" class="page-btn disabled">Next →</span>
+    </div>
+
+</main>
+
+<footer>
+    <span>HR Management Portal</span>
+    <span>Locations</span>
+</footer>
+
+</body>
+</html>

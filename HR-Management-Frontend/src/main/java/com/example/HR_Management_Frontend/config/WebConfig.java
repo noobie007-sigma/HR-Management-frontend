@@ -9,11 +9,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebConfig implements WebMvcConfigurer{
+public class WebConfig implements WebMvcConfigurer {
+
+    // ✅ RestTemplate bean (used in your service)
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+
+    // ✅ Converter for String → BigDecimal (important for IDs from request params)
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(String.class, BigDecimal.class, source -> {

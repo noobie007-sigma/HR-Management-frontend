@@ -1,27 +1,36 @@
-* {
+/* ============================================================
+   HR Management Frontend — style.css
+   Clean UI + responsive + table + cards
+   ============================================================ */
+
+*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
 body {
-    font-family: sans-serif;
-    background: #f5f5f5;
-    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ── HEADER ── */
+header {
+    padding: 16px 32px;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
 }
 
-/* Header */
-header {
-    padding: 24px 40px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-}
-
 header h1 {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 600;
 }
 
@@ -31,116 +40,190 @@ header h1 {
     font-size: 13px;
 }
 
-/* Main */
+.back-link {
+    font-size: 13px;
+    color: #3b6fd4;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* ── MAIN ── */
 main {
     flex: 1;
     padding: 40px;
 }
 
-main h2 {
-    font-size: 16px;
-    font-weight: 500;
-    color: #666;
-    margin-bottom: 24px;
-}
-
-/* Grid */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-}
-
-/* Card */
-.card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    border-color: #98a2b3;
-    box-shadow: 0 12px 30px rgba(16, 24, 40, 0.08);
-}
-
-.card--primary {
-    border-color: #2563eb;
-}
-
-.card-clickable {
-    color: inherit;
-    text-decoration: none;
-    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-}
-
-.card-clickable:hover {
-    border-color: #2563eb;
-    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
-    transform: translateY(-2px);
-}
-
-.card img {
+.page-main {
+    max-width: 1100px;
+    margin: 0 auto;
     width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    display: block;
-    background: #eee;
 }
 
-.card-body {
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.card-name {
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.card-role {
-    font-size: 12px;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.card-link {
-    display: inline-block;
-    padding: 7px 14px;
-    background: #222;
-    color: #fff;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 13px;
-}
-
-.card-link:hover {
-    background: #444;
-}
-
-/* Footer */
-footer {
-    padding: 16px 40px;
-    border-top: 1px solid #ddd;
-    font-size: 12px;
-    color: #aaa;
+/* ── PAGE TITLE ── */
+.page-title-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    header, main, footer {
-        padding-left: 20px;
-        padding-right: 20px;
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* ── BUTTONS ── */
+.btn-primary,
+.btn-view,
+.btn-search {
+    background: #3b6fd4;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover,
+.btn-view:hover,
+.btn-search:hover {
+    background: #2d5bb5;
+}
+
+.btn-clear {
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    padding: 9px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+}
+
+/* ── SEARCH ── */
+.search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.search-input {
+    flex: 1;
+    max-width: 380px;
+    padding: 9px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+/* ── TABLE ── */
+.table-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 14px 18px;
+}
+
+.data-table thead {
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.data-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* ── PAGINATION ── */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+}
+
+.page-num,
+.page-btn {
+    padding: 7px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.page-num.active {
+    background: #3b6fd4;
+    color: white;
+}
+
+/* ── DETAIL PAGE ── */
+.detail-title {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.info-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.info-card-num {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+/* ── DEPARTMENTS ── */
+.dept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.dept-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 16px;
+}
+
+/* ── FOOTER ── */
+footer {
+    padding: 16px 32px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    color: #aaa;
+    background: #fff;
+}
+.card img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin: 20px auto 10px;
+    display: block;
+}
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    main {
+        padding: 20px;
+    }
+
+    .page-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 }

@@ -6,94 +6,87 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * DTO for deserialising an Employee from the Spring Data REST HAL response.
- *
- * Spring Data REST inlines all non-association fields directly in the JSON body.
- * Association fields (job, department, manager) are serialised as nested objects
- * when they are eagerly fetched (or via projections), and also appear as links
- * in _links. We rely on the nested objects here; _links are only used for the
- * manager-chain traversal (see HalLinksDTO).
- *
- * Backend Employee entity fields (snake_case in DB, camelCase in JSON):
- *   employeeId, firstName, lastName, email, phoneNumber, hireDate,
- *   salary, commissionPct, job (→ JobDTO), department (→ DepartmentDTO)
- *
- * Note: Jackson maps JSON "employeeId" → field employeeId automatically.
- *       The backend BigDecimal employeeId serialises as a plain number in JSON.
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmployeeDTO {
 
+    // ===== CORE FIELDS =====
     private BigDecimal employeeId;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
+
     private LocalDate hireDate;
     private BigDecimal salary;
     private BigDecimal commissionPct;
 
-    // Nested association objects (inlined by SDR when not lazy)
+    // ===== FLAT UI FIELDS (from HEAD) =====
+    private String jobId;
+    private String jobTitle;
+
+    // ===== NESTED OBJECTS (from SDR response) =====
     private JobDTO job;
     private DepartmentDTO department;
     private EmployeeDTO manager;
 
-    // HAL _links block — used to extract manager href and self href
+    // ===== HAL LINKS =====
     @JsonProperty("_links")
-    private HalLinksDTO links;
+    private Links links;
 
     public EmployeeDTO() {}
 
-    // ── Derived helpers ──────────────────────────────────────────────────────
+    // =================================================
+    // 🔹 DERIVED METHODS (UI SAFE)
+    // =================================================
 
-    /** Full display name, never null. */
     public String getFullName() {
         String f = firstName != null ? firstName : "";
-        String l = lastName  != null ? lastName  : "";
+        String l = lastName != null ? lastName : "";
         return (f + " " + l).trim();
     }
 
-    /** Initials (up to 2 chars) for avatar rendering. */
     public String getInitials() {
-        String f = (firstName != null && !firstName.isEmpty()) ? String.valueOf(firstName.charAt(0)) : "";
-        String l = (lastName  != null && !lastName.isEmpty())  ? String.valueOf(lastName.charAt(0))  : "";
+        String f = (firstName != null && !firstName.isEmpty()) ? "" + firstName.charAt(0) : "";
+        String l = (lastName != null && !lastName.isEmpty()) ? "" + lastName.charAt(0) : "";
         return (f + l).toUpperCase();
     }
 
-    /**
-     * Extracts the numeric ID string from the HAL self-link href.
-     * e.g. http://localhost:8080/api/v1/employees/149{?projection} → "149"
-     * Falls back to employeeId.toPlainString() if links are absent.
-     */
-    public String getSelfId() {
-        if (employeeId != null) {
-            return employeeId.toPlainString();
-        }
-        if (links != null && links.getSelf() != null) {
-            String href = links.getSelf().getHref();
-            if (href != null) {
-                href = href.replaceAll("\\{.*}", "");           // strip {?projection}
-                return href.substring(href.lastIndexOf('/') + 1);
-            }
-        }
-        return "";
+    public String getSalaryFormatted() {
+        if (salary == null) return "—";
+        return "$" + String.format("%,d", salary.longValue());
     }
 
-    /**
-     * Returns the href of the manager association link, or null if absent.
-     * Used by EmployeeController to walk the reporting chain.
-     */
+    /** Prefer nested job → fallback to flat jobTitle */
+    public String getJobDisplay() {
+        if (job != null && job.getJobTitle() != null) return job.getJobTitle();
+        return jobTitle != null ? jobTitle : "—";
+    }
+
+    /** Extract numeric ID safely */
+    public Long extractId() {
+        if (employeeId != null) return employeeId.longValue();
+
+        if (links != null && links.self != null) {
+            try {
+                String href = links.self.href.replaceAll("\\{.*}", "");
+                String[] parts = href.split("/");
+                return Long.parseLong(parts[parts.length - 1]);
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    /** Manager link (used if you later need hierarchy) */
     public String getManagerHref() {
-        if (links == null) return null;
-        HalLinksDTO.HalLink mgr = links.getManager();
-        if (mgr == null) return null;
-        // Strip templated suffix {?projection}
-        String href = mgr.getHref();
-        return href != null ? href.replaceAll("\\{.*}", "") : null;
+        if (links == null || links.manager == null) return null;
+        return links.manager.href != null
+                ? links.manager.href.replaceAll("\\{.*}", "")
+                : null;
     }
 
-    // ── Getters / Setters ────────────────────────────────────────────────────
+    // =================================================
+    // GETTERS / SETTERS
+    // =================================================
 
     public BigDecimal getEmployeeId() { return employeeId; }
     public void setEmployeeId(BigDecimal v) { this.employeeId = v; }
@@ -119,6 +112,12 @@ public class EmployeeDTO {
     public BigDecimal getCommissionPct() { return commissionPct; }
     public void setCommissionPct(BigDecimal v) { this.commissionPct = v; }
 
+    public String getJobId() { return jobId; }
+    public void setJobId(String v) { this.jobId = v; }
+
+    public String getJobTitle() { return jobTitle; }
+    public void setJobTitle(String v) { this.jobTitle = v; }
+
     public JobDTO getJob() { return job; }
     public void setJob(JobDTO v) { this.job = v; }
 
@@ -128,6 +127,30 @@ public class EmployeeDTO {
     public EmployeeDTO getManager() { return manager; }
     public void setManager(EmployeeDTO v) { this.manager = v; }
 
-    public HalLinksDTO getLinks() { return links; }
-    public void setLinks(HalLinksDTO v) { this.links = v; }
+    public Links getLinks() { return links; }
+    public void setLinks(Links v) { this.links = v; }
+
+    // =================================================
+    // HAL LINK CLASSES (merged safely)
+    // =================================================
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Links {
+        private HRef self;
+        private HRef manager;
+
+        public HRef getSelf() { return self; }
+        public void setSelf(HRef s) { this.self = s; }
+
+        public HRef getManager() { return manager; }
+        public void setManager(HRef m) { this.manager = m; }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class HRef {
+        private String href;
+
+        public String getHref() { return href; }
+        public void setHref(String h) { this.href = h; }
+    }
 }

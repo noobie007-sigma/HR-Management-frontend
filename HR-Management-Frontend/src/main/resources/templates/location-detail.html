@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${location.city} + ' Office — HR Management'">Location Detail</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<header>
+    <a href="/locations" class="back-link">← Office Locations</a>
+</header>
+
+<main class="page-main">
+
+    <!-- ── Location Title ── -->
+    <div class="detail-header">
+        <h1 class="detail-title" th:text="${location.city} + ' Office'">City Office</h1>
+        <p class="detail-address">
+            <span th:if="${location.streetAddress != null}"
+                  th:text="${location.streetAddress + ', '}"></span>
+            <span th:text="${location.city}"></span>
+            <span th:if="${location.stateProvince != null}"
+                  th:text="', ' + ${location.stateProvince}"></span>
+            <span th:if="${location.postalCode != null}"
+                  th:text="' ' + ${location.postalCode}"></span>
+        </p>
+    </div>
+
+    <!-- ── Headcount Card ── -->
+    <div class="info-card">
+        <div class="info-card-icon">
+            <!-- People icon SVG -->
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="#3b6fd4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        </div>
+        <div class="info-card-body">
+            <p class="info-card-label">Headcount</p>
+            <p class="info-card-num" th:text="${totalEmployees}">0</p>
+            <p class="info-card-sub">Total Employees at this Location</p>
+        </div>
+    </div>
+
+    <!-- ── Associated Departments ── -->
+    <div class="section-card">
+        <div class="section-card-header">
+            <h2 class="section-card-title">Associated Departments</h2>
+        </div>
+
+        <!-- Department cards grid -->
+        <div class="dept-grid" th:if="${not #lists.isEmpty(departments)}">
+            <div th:each="dept : ${departments}" class="dept-card">
+                <div class="dept-card-top">
+                    <span class="dept-name" th:text="${dept.departmentName}">Department</span>
+                    <span class="dept-id" th:text="'ID: ' + ${dept.departmentId}">ID: 1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer>
+    <span>HR Management Portal</span>
+    <span>Location Detail</span>
+</footer>
+
+</body>
+</html>
