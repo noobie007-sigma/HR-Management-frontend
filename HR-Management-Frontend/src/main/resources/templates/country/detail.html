@@ -1,19 +1,62 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title th:text="${country['countryName']} + ' — Detail'">Country Detail</title>
+    <style>
+        body { font-family: sans-serif; margin: 24px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+        th { background: #f0f0f0; }
+        tr:hover { background: #f9f9f9; }
+
+        .btn { padding: 6px 12px; text-decoration: none; border-radius: 4px;
+               background: #4CAF50; color: white; font-size: 0.9em; }
+        .btn-back { padding: 6px 12px; text-decoration: none; border-radius: 4px;
+                    background: #f0f0f0; color: #333; font-size: 0.9em;
+                    border: 1px solid #ccc; }
+        .btn-edit { padding: 6px 12px; text-decoration: none; border-radius: 4px;
+                    background: #1565c0; color: white; font-size: 0.9em; }
+
+        .meta-card { background: #f9f9f9; border: 1px solid #ccc;
+                     border-radius: 6px; padding: 14px 18px;
+                     display: inline-block; margin: 12px 0 20px; }
+        .meta-card p { margin: 4px 0; color: #444; }
+        .meta-card strong { color: #111; }
+
+        .badge { display: inline-block; background: #e3f2fd; color: #1565c0;
+                 border: 1px solid #90caf9; border-radius: 12px;
+                 padding: 2px 10px; font-size: 0.85em; font-weight: bold; }
+
+        .empty-msg { color: #777; font-style: italic; margin-top: 12px; }
+
+        .actions { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+
+        h1 { margin-bottom: 4px; }
+        h3 { margin-top: 28px; margin-bottom: 4px; color: #333; }
+    </style>
 </head>
 <body>
 
-    <h1 th:text="${country['countryName']}"></h1>
-    <p>
-        Country ID: <strong th:text="${country['countryId']}"></strong>
-        &nbsp;|&nbsp;
-        Region: <strong th:text="${country['region'] != null ? country['region']['regionName'] : 'N/A'}"></strong>
-    </p>
+    <div class="actions">
+        <a class="btn-back" href="/countries">← Back to Countries</a>
+        <a class="btn-edit" th:href="@{/countries/edit/{id}(id=${country['countryId']})}">Edit Country</a>
+    </div>
 
-    <h3>Employees in this country: <span th:text="${employeeCount}"></span></h3>
+    <h1 th:text="${country['countryName']}"></h1>
+
+    <div class="meta-card">
+        <p>Country ID: <strong th:text="${country['countryId']}"></strong></p>
+        <p th:if="${country['region'] != null}">
+            Region: <strong th:text="${country['region']['regionName']}"></strong>
+        </p>
+    </div>
+
+    <h3>
+        Employees in this country:
+        <span class="badge" th:text="${employeeCount}"></span>
+    </h3>
 
     <table th:if="${employeeCount > 0}">
         <thead>
@@ -30,10 +73,7 @@
         </tbody>
     </table>
 
-    <p th:if="${employeeCount == 0}">No employees found in this country.</p>
-
-    <br>
-    <a href="/countries">← Back to Countries</a>
+    <p class="empty-msg" th:if="${employeeCount == 0}">No employees found in this country.</p>
 
 </body>
 </html>

@@ -48,6 +48,7 @@ public class CountryController {
         model.addAttribute("countries",   countries);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages",  totalPages);
+        
 
         return "country/list";
     }
