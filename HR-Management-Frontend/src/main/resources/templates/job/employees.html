@@ -3,417 +3,129 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${job != null ? job.jobTitle + ' – Employees' : 'Job Employees'}">
-        Job Employees – HR Management
-    </title>
+    <!-- Updated line below to use standard concatenation to fix the parsing error -->
+    <title th:text="${job != null} ? ${job.jobTitle} + ' – Employees' : 'Job Employees'">Job Employees</title>
     <link rel="stylesheet" th:href="@{/css/style.css}" />
     <style>
-        /* ── Job employees page ───────────────────────────────────── */
         body { background: #f6f7fb; font-family: 'Inter', sans-serif; }
-
-        .page-wrap {
-            width: min(1100px, 100%);
-            margin: 0 auto;
-            padding: 32px 24px;
-        }
-
-        /* breadcrumb */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #667085;
-            margin-bottom: 24px;
-        }
-
-        .breadcrumb a {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .breadcrumb a:hover { text-decoration: underline; }
-
+        .page-wrap { width: min(1100px, 100%); margin: 0 auto; padding: 32px 24px; }
+        
+        .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #667085; margin-bottom: 24px; }
+        .breadcrumb a { color: #2563eb; text-decoration: none; font-weight: 600; }
         .breadcrumb .sep { color: #d0d5dd; }
 
-        /* job hero card */
         .job-hero {
             background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-            border-radius: 12px;
-            padding: 28px 32px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 24px;
-            flex-wrap: wrap;
-            margin-bottom: 28px;
-            box-shadow: 0 4px 16px rgba(37,99,235,.25);
+            border-radius: 12px; padding: 28px 32px; color: #fff;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 24px; margin-bottom: 28px; box-shadow: 0 4px 16px rgba(37,99,235,.25);
         }
-
-        .job-hero-left { display: flex; align-items: center; gap: 18px; }
 
         .job-icon {
-            width: 56px; height: 56px;
-            background: rgba(255,255,255,.15);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
+            width: 56px; height: 56px; background: rgba(255,255,255,.15);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
         }
 
-        .job-hero h1 {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
+        .job-hero h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .job-id-label { display: inline-flex; padding: 3px 10px; background: rgba(255,255,255,.2); border-radius: 999px; font-size: 12px; font-weight: 700; }
 
-        .job-id-label {
-            display: inline-flex;
-            align-items: center;
-            padding: 3px 10px;
-            background: rgba(255,255,255,.2);
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .04em;
-        }
-
-        .job-stats {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-
-        .stat-box {
-            text-align: center;
-        }
-
-        .stat-box .stat-val {
-            font-size: 26px;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .stat-box .stat-label {
-            font-size: 12px;
-            opacity: .75;
-            margin-top: 4px;
-        }
-
-        .salary-chips {
-            display: flex;
-            gap: 12px;
-            margin-top: 6px;
-            flex-wrap: wrap;
-        }
-
-        .salary-chip {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 6px 14px;
-            background: rgba(255,255,255,.15);
-            border-radius: 8px;
-            font-size: 12px;
-        }
-
+        .salary-chip { display: flex; flex-direction: column; align-items: center; padding: 6px 14px; background: rgba(255,255,255,.15); border-radius: 8px; font-size: 12px; }
         .salary-chip strong { font-size: 15px; font-weight: 700; }
 
-        /* table card */
-        .table-card {
-            background: #fff;
-            border: 1px solid #eaecf0;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(16,24,40,.06);
-            overflow: hidden;
-        }
+        .table-card { background: #fff; border: 1px solid #eaecf0; border-radius: 10px; overflow: hidden; }
+        .table-card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eaecf0; }
+        
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 12px 20px; border-bottom: 1px solid #eaecf0; text-align: left; font-size: 13px; }
+        .data-table th { background: #f9fafb; color: #475467; font-weight: 700; text-transform: uppercase; font-size: 12px; }
 
-        .table-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid #eaecf0;
-        }
-
-        .table-card-header h2 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #101828;
-        }
-
-        .count-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 3px 10px;
-            background: #eff8ff;
-            color: #175cd3;
-            border: 1px solid #b2ddff;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        /* data table */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 12px 20px;
-            border-bottom: 1px solid #eaecf0;
-            text-align: left;
-            font-size: 13px;
-            vertical-align: middle;
-        }
-
-        .data-table th {
-            color: #475467;
-            background: #f9fafb;
-            font-weight: 700;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-        }
-
-        .data-table tr:last-child td { border-bottom: 0; }
-        .data-table tbody tr:hover { background: #f9fafb; }
-
-        /* pagination */
-        .pagination-footer {
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid #eaecf0;
-            background: #f9fafb;
-        }
-
-        .btn-pagination {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 14px;
-            border: 1px solid #d0d5dd;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #344054;
-            background: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow: 0 1px 2px rgba(16,24,40,0.05);
-            transition: all 0.2s;
-        }
-
-        .btn-pagination:hover {
-            background: #f9fafb;
-            color: #101828;
-            border-color: #d0d5dd;
-        }
-
-        /* person cell */
-        .person-cell {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .avatar {
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            background: #dbeafe;
-            color: #1e40af;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .person-name { font-weight: 600; color: #101828; }
-        .person-email { font-size: 12px; color: #667085; margin-top: 2px; }
-
-        /* empty state */
-        .empty-state {
-            padding: 48px 24px;
-            text-align: center;
-            color: #667085;
-        }
-
-        /* error banner */
-        .banner--error {
-            margin-bottom: 20px;
-            padding: 12px 16px;
-            background: #fef3f2;
-            border: 1px solid #fecdca;
-            border-radius: 8px;
-            color: #b42318;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .back-link {
-            display: inline-block;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        footer {
-            margin-top: 48px;
-            padding: 24px;
-            border-top: 1px solid #eaecf0;
-            display: flex;
-            justify-content: space-between;
-            color: #667085;
-            font-size: 12px;
-        }
-
-        @media (max-width: 700px) {
-            .job-hero { flex-direction: column; align-items: flex-start; }
-            .job-stats { width: 100%; justify-content: flex-start; }
-        }
+        .pagination-footer { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; background: #f9fafb; border-top: 1px solid #eaecf0; }
+        .btn-pagination { padding: 8px 14px; border: 1px solid #d0d5dd; border-radius: 8px; text-decoration: none; color: #344054; background: #fff; font-size: 13px; font-weight: 600; }
+        .btn-pagination--disabled { color: #d0d5dd; pointer-events: none; background: #fcfcfc; }
+        
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: #dbeafe; color: #1e40af; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<header style="padding: 20px 40px; background: #fff; border-bottom: 1px solid #eaecf0;">
-    <h1 style="margin:0; font-size: 20px; color: #101828;">HR Management</h1>
-    <p style="margin:0; font-size: 12px; color: #667085;">Team modules</p>
-</header>
-
 <div class="page-wrap">
-
-    <!-- Breadcrumb -->
     <nav class="breadcrumb">
         <a th:href="@{/}">Home</a>
         <span class="sep">›</span>
         <a th:href="@{/jobs}">Jobs</a>
         <span class="sep">›</span>
-        <span th:text="${job != null ? job.jobTitle : 'Employees'}"></span>
+        <!-- Fixed breadcrumb logic -->
+        <span th:text="${job != null} ? ${job.jobTitle} : 'Employees'"></span>
     </nav>
 
-    <!-- Error banner -->
-    <div class="banner--error" th:if="${error != null}" th:text="${error}"></div>
-
-    <!-- Job hero card -->
+    <!-- Job Details -->
     <div class="job-hero" th:if="${job != null}">
-        <div class="job-hero-left">
+        <div style="display: flex; align-items: center; gap: 18px;">
             <div class="job-icon">
-                <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183
-                             0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2
-                             2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2
-                             2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
             </div>
             <div>
                 <h1 th:text="${job.jobTitle}">Job Title</h1>
                 <span class="job-id-label" th:text="'ID: ' + ${job.jobId}"></span>
-                
-                <div class="salary-chips" th:if="${job.minSalary != null or job.maxSalary != null}">
-                    <div class="salary-chip" th:if="${job.minSalary != null}">
-                        <span>Min Range</span>
-                        <strong th:text="${#numbers.formatCurrency(job.minSalary)}"></strong>
-                    </div>
-                    <div class="salary-chip" th:if="${job.maxSalary != null}">
-                        <span>Max Range</span>
-                        <strong th:text="${#numbers.formatCurrency(job.maxSalary)}"></strong>
-                    </div>
-                </div>
             </div>
         </div>
-
-        <div class="job-stats">
-            <div class="stat-box">
-                <div class="stat-val" th:text="${employeeCount}">0</div>
-                <div class="stat-label">Employees</div>
-            </div>
+        <div style="text-align: center;">
+            <div style="font-size: 26px; font-weight: 800;" th:text="${employeeCount}">0</div>
+            <div style="font-size: 12px; opacity: .75;">Total Employees</div>
         </div>
     </div>
 
-    <!-- Employee table card -->
+    <!-- Table -->
     <div class="table-card">
-
         <div class="table-card-header">
-            <h2>Employees in this Role</h2>
-            <span class="count-badge"
-                  th:text="${employeeCount} + ' employee' + (${employeeCount} != 1 ? 's' : '')"></span>
+            <h2 style="font-size: 16px; font-weight: 600;">Team Members</h2>
         </div>
 
-        <div class="table-wrap" th:if="${employees != null and !employees.isEmpty()}">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>ID</th>
-                        <th>Phone</th>
-                        <th>Hire Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="emp : ${employees}">
-                        <td>
-                            <div class="person-cell">
-                                <div class="avatar" th:text="${emp.firstName != null ? emp.firstName.substring(0,1) : 'E'}"></div>
-                                <div>
-                                    <div class="person-name" th:text="${emp.firstName + ' ' + emp.lastName}"></div>
-                                    <div class="person-email" th:text="${emp.email}"></div>
-                                </div>
+        <table class="data-table" th:if="${!employees.isEmpty()}">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>ID</th>
+                    <th>Hire Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="emp : ${employees}">
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="avatar" th:text="${emp.firstName.substring(0,1)}"></div>
+                            <div>
+                                <div style="font-weight: 600;" th:text="${emp.firstName} + ' ' + ${emp.lastName}"></div>
+                                <div style="font-size: 12px; color: #667085;" th:text="${emp.email}"></div>
                             </div>
-                        </td>
-                        <td th:text="${emp.employeeId}"></td>
-                        <td th:text="${emp.phoneNumber != null ? emp.phoneNumber : '—'}"></td>
-                        <td th:text="${emp.hireDate != null ? #temporals.format(emp.hireDate, 'MMM dd, yyyy') : '—'}"></td>
-                    </tr>
-                </tbody>
-            </table>
+                        </div>
+                    </td>
+                    <td th:text="${emp.employeeId}"></td>
+                    <td th:text="${#temporals.format(emp.hireDate, 'MMM dd, yyyy')}"></td>
+                </tr>
+            </tbody>
+        </table>
 
-            <!-- Pagination Footer -->
-            <div class="pagination-footer" th:if="${totalPages > 1}">
-                <div style="font-size: 13px; color: #475467;">
-                    Page <span th:text="${currentPage + 1}" style="font-weight: 600; color: #101828;">1</span> 
-                    of <span th:text="${totalPages}" style="font-weight: 600; color: #101828;">1</span>
-                </div>
-
-                <div style="display: flex; gap: 8px;">
-                    <a th:href="@{/jobs/{id}/employees(id=${jobId}, page=${currentPage - 1})}"
-                       th:if="${hasPrevious}" class="btn-pagination">
-                       <span style="margin-right: 4px;">←</span> Previous
-                    </a>
-
-                    <a th:href="@{/jobs/{id}/employees(id=${jobId}, page=${currentPage + 1})}"
-                       th:if="${hasNext}" class="btn-pagination">
-                       Next <span style="margin-left: 4px;">→</span>
-                    </a>
-                </div>
+        <!-- Pagination Footer -->
+        <div class="pagination-footer" th:if="${totalPages > 1}">
+            <div style="font-size: 13px; color: #475467;">
+                Page <span th:text="${currentPage + 1}" style="font-weight: 700;"></span> of <span th:text="${totalPages}" style="font-weight: 700;"></span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <a th:href="@{/jobs/{id}/employees(id=${jobId}, page=${currentPage - 1})}"
+                   class="btn-pagination" th:classappend="${!hasPrevious} ? 'btn-pagination--disabled'">Previous</a>
+                <a th:href="@{/jobs/{id}/employees(id=${jobId}, page=${currentPage + 1})}"
+                   class="btn-pagination" th:classappend="${!hasNext} ? 'btn-pagination--disabled'">Next</a>
             </div>
         </div>
 
-        <!-- Empty state -->
-        <div class="empty-state" th:if="${employees == null or employees.isEmpty()}">
-            <p>No employees found</p>
-            <small>No employees are currently assigned to this job title.</small>
+        <div th:if="${employees.isEmpty()}" style="padding: 40px; text-align: center; color: #667085;">
+            No employees currently assigned to this role.
         </div>
-
     </div>
-
-    <!-- Back button -->
-    <div style="margin-top:20px;">
-        <a th:href="@{/jobs}" class="back-link">← Back to Jobs</a>
-    </div>
-
 </div>
-
-<footer>
-    <span>HR Management Portal</span>
-    <span>Jobs module</span>
-</footer>
 
 </body>
 </html>

@@ -36,17 +36,12 @@ public class JobController {
             @RequestParam(defaultValue = "")   String search,
             Model model
     ) {
-        List<JobDTO> jobs      = Collections.emptyList();
-        int         totalPages = 1;
-        String      loadError  = null;
+        List<JobDTO> allJobs   = new ArrayList<>();
+        String       loadError = null;
 
         try {
-            String url = (search != null && !search.isBlank())
-                    ? backendUrl
-                        + "/jobs/search/findByJobTitleContainingIgnoreCase"
-                        + "?title=" + encodeParam(search.trim())
-                        + "&page=" + page + "&size=" + PAGE_SIZE
-                    : backendUrl + "/jobs?page=" + page + "&size=" + PAGE_SIZE;
+            // Fetch jobs with a large size to allow for client-side filtering as per your logic
+            String url = backendUrl + "/jobs?size=200&page=0";
 
             @SuppressWarnings("unchecked")
             Map<String, Object> body = restTemplate.getForObject(url, Map.class);
@@ -59,25 +54,37 @@ public class JobController {
                     List<Map<String, Object>> rawJobs =
                             (List<Map<String, Object>>) embedded.get("jobs");
                     if (rawJobs != null) {
-                        jobs = new ArrayList<>();
                         for (Map<String, Object> raw : rawJobs) {
-                            jobs.add(toJobDTO(raw));
+                            allJobs.add(toJobDTO(raw));
                         }
                     }
-                }
-                @SuppressWarnings("unchecked")
-                Map<String, Object> pageInfo = (Map<String, Object>) body.get("page");
-                if (pageInfo != null) {
-                    int tp = ((Number) pageInfo.get("totalPages")).intValue();
-                    totalPages = tp == 0 ? 1 : tp;
                 }
             }
         } catch (Exception e) {
             loadError = "Could not load jobs: " + e.getMessage();
         }
 
+        // Client-side filter logic
+        String term = (search != null) ? search.trim().toLowerCase() : "";
+        List<JobDTO> filtered = term.isBlank() ? allJobs : new ArrayList<>();
+        if (!term.isBlank()) {
+            for (JobDTO j : allJobs) {
+                boolean idMatch    = j.getJobId() != null && j.getJobId().toLowerCase().contains(term);
+                boolean titleMatch = j.getJobTitle() != null && j.getJobTitle().toLowerCase().contains(term);
+                if (idMatch || titleMatch) filtered.add(j);
+            }
+        }
+
+        // Manual pagination for the job list
+        int total       = filtered.size();
+        int totalPages  = Math.max(1, (int) Math.ceil(total / (double) PAGE_SIZE));
         int currentPage = Math.max(0, Math.min(page, totalPages - 1));
-        model.addAttribute("jobs",        jobs);
+        int fromIndex   = currentPage * PAGE_SIZE;
+        int toIndex     = Math.min(fromIndex + PAGE_SIZE, total);
+        List<JobDTO> pageJobs = filtered.subList(fromIndex, toIndex);
+
+        model.addAttribute("jobs",        pageJobs);
+        model.addAttribute("totalJobs",   total);
         model.addAttribute("search",      search);
         model.addAttribute("currentPage", currentPage);
         model.addAttribute("totalPages",  totalPages);
@@ -103,7 +110,7 @@ public class JobController {
         long totalItems = 0;
         String loadError = null;
 
-        // 1. Fetch job details for the header
+        // 1. Fetch job details for the header card
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> rawJob = restTemplate.getForObject(
@@ -118,7 +125,6 @@ public class JobController {
 
         // 2. Fetch PAGED employees using the backend search endpoint
         try {
-            // Using the 'byJob' path defined in EmployeeRepository
             String url = backendUrl + "/employees/search/byJob"
                     + "?jobId=" + encodeParam(jobId)
                     + "&page=" + page 
@@ -153,6 +159,7 @@ public class JobController {
 
         int currentPage = Math.max(0, Math.min(page, totalPages - 1));
 
+        // Essential attributes for the Thymeleaf pagination footer
         model.addAttribute("job", job);
         model.addAttribute("jobId", jobId);
         model.addAttribute("employees", employees);
@@ -217,7 +224,6 @@ public class JobController {
         dto.setLastName   ((String) raw.get("lastName"));
         dto.setEmail      ((String) raw.get("email"));
         dto.setPhoneNumber((String) raw.get("phoneNumber"));
-        // Salary data is excluded from UI mapping if not needed
         if (raw.get("hireDate") != null) {
             try { dto.setHireDate(LocalDate.parse(raw.get("hireDate").toString())); }
             catch (Exception ignored) {}

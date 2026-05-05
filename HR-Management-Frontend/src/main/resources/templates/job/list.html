@@ -297,7 +297,7 @@
 
     <!-- Search form -->
     <form class="search-form" method="get" th:action="@{/jobs}" style="margin-bottom:20px;">
-        <input type="text" name="search" placeholder="Search by job title…"
+        <input type="text" name="search" placeholder="Search by job ID or title…"
                th:value="${search}" autocomplete="off" />
         <button type="submit" class="btn-search">Search</button>
         <a th:if="${search != null and !#strings.isEmpty(search)}"
@@ -312,10 +312,11 @@
                 Jobs
                 <span class="search-tag"
                       th:if="${search != null and !#strings.isEmpty(search)}"
-                      th:text="|Search: ${search}|"></span>
+                      th:text="|Searching: ${search}|"></span>
             </h2>
+            <!-- FIXED: Using pipes for safe concatenation -->
             <span class="result-count"
-                  th:text="|Page ${currentPage + 1} of ${totalPages}|"></span>
+                  th:text="|${totalJobs} result${totalJobs != 1 ? 's' : ''} · Page ${currentPage + 1} of ${totalPages}|"></span>
         </div>
 
         <!-- Table -->
@@ -341,13 +342,14 @@
                             <strong th:text="${job.jobTitle}"></strong>
                         </td>
                         <td>
+                            <!-- FIXED: Better formatting check -->
                             <span class="salary-range"
-                                  th:text="${job.minSalary != null ? '$' + #numbers.formatDecimal(job.minSalary, 1, 'COMMA', 0, 'POINT') : '—'}">
+                                  th:text="${job.minSalary != null} ? |$${#numbers.formatDecimal(job.minSalary, 1, 'COMMA', 0, 'POINT')}| : '—'">
                             </span>
                         </td>
                         <td>
                             <span class="salary-range"
-                                  th:text="${job.maxSalary != null ? '$' + #numbers.formatDecimal(job.maxSalary, 1, 'COMMA', 0, 'POINT') : '—'}">
+                                  th:text="${job.maxSalary != null} ? |$${#numbers.formatDecimal(job.maxSalary, 1, 'COMMA', 0, 'POINT')}| : '—'">
                             </span>
                         </td>
                         <td>
@@ -370,6 +372,7 @@
                          10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <p>No jobs found</p>
+            <!-- FIXED: Safe text for search results -->
             <small th:if="${search != null and !#strings.isEmpty(search)}"
                    th:text="|No results for '${search}'|"></small>
             <small th:unless="${search != null and !#strings.isEmpty(search)}">
@@ -379,8 +382,9 @@
 
         <!-- Pagination -->
         <div class="pagination-wrap" th:if="${totalPages > 1}">
+            <!-- FIXED: Using pipes for safe concatenation -->
             <span class="page-info"
-                  th:text="|Page ${currentPage + 1} of ${totalPages}|"></span>
+                  th:text="|${totalJobs} result${totalJobs != 1 ? 's' : ''} · Page ${currentPage + 1} of ${totalPages}|"></span>
             <div class="page-controls">
                 <a class="page-btn"
                    th:classappend="${!hasPrevious} ? 'page-btn--disabled'"
@@ -401,7 +405,7 @@
             </div>
         </div>
 
-    </div>
+    </div><!-- /table-card -->
 
 </div>
 
